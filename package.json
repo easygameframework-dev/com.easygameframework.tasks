@@ -1,0 +1,22 @@
+{
+  "name": "com.easygameframework.tasks",
+  "version": "1.0.0",
+  "displayName": "EasyGameFramework Tasks",
+  "description": "",
+  "unity": "2022.3",
+  "unityRelease": "55f1",
+  "license": "MIT",
+  "author": {
+    "name": "easygameframework-dev",
+    "email": "2907142541@qq.com",
+    "url": "https://github.com/easygameframework-dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/easygameframework-dev/com.easygameframework.tasks"
+  },
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.10",
+    "com.easygameframework": "1.0.0"
+  }
+}
