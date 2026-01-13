@@ -1,5 +1,5 @@
 {
-    "name": "EasyGameFramework.Tasks.Runtime",
+    "name": "EasyGameFramework.Tasks",
     "rootNamespace": "",
     "references": [
         "EasyGameFramework",

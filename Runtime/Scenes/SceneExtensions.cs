@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using EasyGameFramework.Core.Event;
 using EasyGameFramework.Core.Resource;
 using UnityEngine.SceneManagement;
 

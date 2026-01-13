@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using Cysharp.Threading.Tasks;
+using EasyGameFramework.Core.Event;
 using EasyGameFramework.Core.Network;
 
 namespace EasyGameFramework.Tasks
