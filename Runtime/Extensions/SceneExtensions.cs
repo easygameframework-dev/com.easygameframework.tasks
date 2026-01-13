@@ -29,7 +29,7 @@ namespace EasyGameFramework.Tasks
             string customPackageName = "",
             LoadSceneMode sceneMode = LoadSceneMode.Single,
             LocalPhysicsMode physicsMode = LocalPhysicsMode.None,
-            int? priority = null)
+            int? customPriority = null)
         {
             var resourcesComponent = GameEntry.GetComponent<ResourceComponent>();
             var packageName = string.IsNullOrEmpty(customPackageName)
@@ -48,7 +48,7 @@ namespace EasyGameFramework.Tasks
 
             sceneComponent.LoadScene(
                 new AssetAddress(packageName, sceneAssetName),
-                priority,
+                customPriority,
                 new LoadSceneParameters(sceneMode, physicsMode));
 
             return tcs.Task;
