@@ -13,27 +13,24 @@ namespace EasyGameFramework.Tasks
         private static readonly Dictionary<string, UniTaskCompletionSource<object>> AssetLoadCompletedTcsByPath =
             new Dictionary<string, UniTaskCompletionSource<object>>();
 
-        public static async UniTask<T> LoadAssetAsync<T>(this ResourceComponent resourceComponent, string assetName,
-            string customPackageName = "",
+        public static async UniTask<T> LoadAssetAsync<T>(this ResourceComponent resourceComponent, AssetAddress assetAddress,
             int? priority = null,
             object userData = null)
             where T : UnityEngine.Object
         {
-            var result = await LoadAssetAsync(resourceComponent, assetName, customPackageName, typeof(T), priority, userData);
+            var result = await LoadAssetAsync(resourceComponent, assetAddress, typeof(T), priority, userData);
             return (T)result;
         }
 
         public static async UniTask<T[]> LoadSubAssetsAsync<T>(this ResourceComponent resourceComponent,
-            string assetName,
-            string customPackageName = "",
+            AssetAddress assetAddress,
             int? priority = null,
             object userData = null)
             where T : UnityEngine.Object
         {
             var result = await LoadAssetAsyncImpl(
                 resourceComponent,
-                assetName,
-                customPackageName,
+                assetAddress,
                 typeof(T[]),
                 priority,
                 userData);
@@ -46,43 +43,35 @@ namespace EasyGameFramework.Tasks
         }
 
         public static async UniTask<UnityEngine.Object[]> LoadSubAssetsAsync(this ResourceComponent resourceComponent,
-            string assetName,
-            string customPackageName = "",
+            AssetAddress assetAddress,
             Type assetType = null,
             int? priority = null,
             object userData = null)
         {
             return (UnityEngine.Object[])await LoadAssetAsyncImpl(
                 resourceComponent,
-                assetName,
-                customPackageName,
+                assetAddress,
                 assetType == null ? typeof(UnityEngine.Object[]) : assetType.MakeArrayType(),
                 priority,
                 userData);
         }
 
         public static async UniTask<UnityEngine.Object> LoadAssetAsync(this ResourceComponent resourceComponent,
-            string assetName,
-            string customPackageName = "",
+            AssetAddress assetAddress,
             Type assetType = null,
             int? priority = null,
             object userData = null)
         {
-            return (UnityEngine.Object)await LoadAssetAsyncImpl(resourceComponent, assetName, customPackageName, assetType, priority, userData);
+            return (UnityEngine.Object)await LoadAssetAsyncImpl(resourceComponent, assetAddress, assetType, priority, userData);
         }
 
         private static UniTask<object> LoadAssetAsyncImpl(this ResourceComponent resourceComponent,
-            string assetName,
-            string customPackageName = "",
+            AssetAddress assetAddress,
             Type assetType = null,
             int? priority = null,
             object userData = null)
         {
-            var packageName = string.IsNullOrEmpty(customPackageName)
-                ? resourceComponent.DefaultPackageName
-                : customPackageName;
-
-            var path = $"{packageName}/{assetName}";
+            var path = assetAddress.ToString();
             if (AssetLoadCompletedTcsByPath.TryGetValue(path, out var tcs))
             {
                 return tcs.Task;
@@ -90,13 +79,13 @@ namespace EasyGameFramework.Tasks
 
             tcs = new UniTaskCompletionSource<object>();
             AssetLoadCompletedTcsByPath[path] = tcs;
-            resourceComponent.LoadAsset(assetName, LoadAssetCallbacks, customPackageName, assetType, priority, userData);
+            resourceComponent.LoadAsset(assetAddress, LoadAssetCallbacks, assetType, priority, userData);
             return tcs.Task;
         }
 
-        private static void OnLoadAssetSuccess(string packageName, string assetName, object asset, float duration, object userData)
+        private static void OnLoadAssetSuccess(AssetAddress assetAddress, object asset, float duration, object userData)
         {
-            var path = $"{packageName}/{assetName}";
+            var path = assetAddress.ToString();
             var tcs = AssetLoadCompletedTcsByPath[path];
             if (asset == null)
             {
@@ -110,9 +99,9 @@ namespace EasyGameFramework.Tasks
             AssetLoadCompletedTcsByPath.Remove(path);
         }
 
-        private static void OnLoadAssetFailure(string packageName, string assetName, LoadResourceStatus status, string error, object userData)
+        private static void OnLoadAssetFailure(AssetAddress assetAddress, LoadResourceStatus status, string error, object userData)
         {
-            var path = $"{packageName}/{assetName}";
+            var path = assetAddress.ToString();
             var tcs = AssetLoadCompletedTcsByPath[path];
             tcs.TrySetException(new Exception(error));
             AssetLoadCompletedTcsByPath.Remove(path);

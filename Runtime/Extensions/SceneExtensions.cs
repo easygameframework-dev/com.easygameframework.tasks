@@ -9,11 +9,11 @@ namespace EasyGameFramework.Tasks
 {
     public static class SceneExtensions
     {
-        private static readonly Dictionary<string, UniTaskCompletionSource<Scene>> SceneLoadCompletedTcsByAssetPath =
-            new Dictionary<string, UniTaskCompletionSource<Scene>>();
+        private static readonly Dictionary<AssetAddress, UniTaskCompletionSource<Scene>> SceneLoadCompletedTcsByAssetAddress =
+            new Dictionary<AssetAddress, UniTaskCompletionSource<Scene>>();
 
-        private static readonly Dictionary<string, UniTaskCompletionSource> SceneUnloadCompletedTcsByAssetPath =
-            new Dictionary<string, UniTaskCompletionSource>();
+        private static readonly Dictionary<AssetAddress, UniTaskCompletionSource> SceneUnloadCompletedTcsByAssetAddress =
+            new Dictionary<AssetAddress, UniTaskCompletionSource>();
         
         static SceneExtensions()
         {
@@ -25,29 +25,21 @@ namespace EasyGameFramework.Tasks
         }
 
         public static UniTask<Scene> LoadSceneAsync(this SceneComponent sceneComponent,
-            string sceneAssetName,
-            string customPackageName = "",
+            AssetAddress sceneAssetAddress,
             LoadSceneMode sceneMode = LoadSceneMode.Single,
             LocalPhysicsMode physicsMode = LocalPhysicsMode.None,
             int? customPriority = null)
         {
-            var resourcesComponent = GameEntry.GetComponent<ResourceComponent>();
-            var packageName = string.IsNullOrEmpty(customPackageName)
-                ? resourcesComponent.DefaultPackageName
-                : customPackageName;
-
-            var key = $"{packageName}/{sceneAssetName}";
-
-            if (SceneLoadCompletedTcsByAssetPath.TryGetValue(key, out var tcs))
+            if (SceneLoadCompletedTcsByAssetAddress.TryGetValue(sceneAssetAddress, out var tcs))
             {
                 return tcs.Task;
             }
 
             tcs = new UniTaskCompletionSource<Scene>();
-            SceneLoadCompletedTcsByAssetPath[key] = tcs;
+            SceneLoadCompletedTcsByAssetAddress[sceneAssetAddress] = tcs;
 
             sceneComponent.LoadScene(
-                new AssetAddress(packageName, sceneAssetName),
+                sceneAssetAddress,
                 customPriority,
                 new LoadSceneParameters(sceneMode, physicsMode));
 
@@ -55,62 +47,51 @@ namespace EasyGameFramework.Tasks
         }
 
         public static UniTask UnloadSceneAsync(this SceneComponent sceneComponent,
-            string sceneAssetName,
-            string customPackageName = "")
+            AssetAddress sceneAssetAddress)
         {
-            var resourcesComponent = GameEntry.GetComponent<ResourceComponent>();
-            var packageName = string.IsNullOrEmpty(customPackageName)
-                ? resourcesComponent.DefaultPackageName
-                : customPackageName;
-
-            var key = $"{packageName}/{sceneAssetName}";
-            if (SceneUnloadCompletedTcsByAssetPath.TryGetValue(key, out var tcs))
+            if (SceneUnloadCompletedTcsByAssetAddress.TryGetValue(sceneAssetAddress, out var tcs))
             {
                 return tcs.Task;
             }
             tcs = new UniTaskCompletionSource();
-            SceneUnloadCompletedTcsByAssetPath[key] = tcs;
-            sceneComponent.UnloadScene(new AssetAddress(packageName, sceneAssetName));
+            SceneUnloadCompletedTcsByAssetAddress[sceneAssetAddress] = tcs;
+            sceneComponent.UnloadScene(sceneAssetAddress);
             return tcs.Task;
         }
 
         private static void OnEvent(object sender, LoadSceneSuccessEventArgs e)
         {
-            var path = $"{e.PackageName}/{e.SceneAssetName}";
-            var tcs = SceneLoadCompletedTcsByAssetPath[path];
+            var tcs = SceneLoadCompletedTcsByAssetAddress[e.SceneAssetAddress];
 
             if (e.SceneAsset is not Scene scene)
             {
-                throw new Exception($"Scene asset '{path}' is not a scene.");
+                throw new Exception($"Scene asset '{e.SceneAssetAddress}' is not a scene.");
             }
 
             tcs.TrySetResult(scene);
-            SceneLoadCompletedTcsByAssetPath.Remove(path);
+            SceneLoadCompletedTcsByAssetAddress.Remove(e.SceneAssetAddress);
         }
 
         private static void OnEvent(object sender, LoadSceneFailureEventArgs e)
         {
-            var path = $"{e.PackageName}/{e.SceneAssetName}";
-            var tcs = SceneLoadCompletedTcsByAssetPath[path];
+            var tcs = SceneLoadCompletedTcsByAssetAddress[e.SceneAssetAddress];
             tcs.TrySetException(new Exception(e.ErrorMessage));
-            SceneLoadCompletedTcsByAssetPath.Remove(path);
+            SceneLoadCompletedTcsByAssetAddress.Remove(e.SceneAssetAddress);
         }
 
         private static void OnEvent(object sender, UnloadSceneSuccessEventArgs e)
         {
-            var path = $"{e.PackageName}/{e.SceneAssetName}";
-            var tcs = SceneUnloadCompletedTcsByAssetPath[path];
+            var tcs = SceneUnloadCompletedTcsByAssetAddress[e.SceneAssetAddress];
             tcs.TrySetResult();
-            SceneUnloadCompletedTcsByAssetPath.Remove(path);
+            SceneUnloadCompletedTcsByAssetAddress.Remove(e.SceneAssetAddress);
         }
 
         private static void OnEvent(object sender, UnloadSceneFailureEventArgs e)
         {
-            var path = $"{e.PackageName}/{e.SceneAssetName}";
-            var tcs = SceneUnloadCompletedTcsByAssetPath[path];
+            var tcs = SceneUnloadCompletedTcsByAssetAddress[e.SceneAssetAddress];
 
             tcs.TrySetException(new Exception(e.ErrorMessage));
-            SceneUnloadCompletedTcsByAssetPath.Remove(path);
+            SceneUnloadCompletedTcsByAssetAddress.Remove(e.SceneAssetAddress);
         }
     }
 }

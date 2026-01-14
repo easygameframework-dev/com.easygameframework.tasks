@@ -2,13 +2,15 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using EasyGameFramework.Core.Event;
+using EasyGameFramework.Core.Resource;
+using EasyGameFramework;
 
 namespace EasyGameFramework.Tasks
 {
     public static class DataTableExtensions
     {
-        private static readonly Dictionary<string, UniTaskCompletionSource> DataTableLoadCompletedTcsByAssetName =
-            new Dictionary<string, UniTaskCompletionSource>();
+        private static readonly Dictionary<AssetAddress, UniTaskCompletionSource> DataTableLoadCompletedTcsByAssetAddress =
+            new Dictionary<AssetAddress, UniTaskCompletionSource>();
 
         static DataTableExtensions()
         {
@@ -20,38 +22,30 @@ namespace EasyGameFramework.Tasks
         public static UniTask LoadDataTableAsync(
             this DataTableComponent dataTableComponent,
             Type dataRowType,
-            string assetName,
+            AssetAddress assetAddress,
             string dataTableName = "",
-            string customPackageName = "",
             int? customPriority = null)
         {
-            //TODO key结合packageName
-            if (DataTableLoadCompletedTcsByAssetName.TryGetValue(assetName, out var tcs))
+            if (DataTableLoadCompletedTcsByAssetAddress.TryGetValue(assetAddress, out var tcs))
             {
                 return tcs.Task;
             }
 
             tcs = new UniTaskCompletionSource();
-            DataTableLoadCompletedTcsByAssetName[assetName] = tcs;
+            DataTableLoadCompletedTcsByAssetAddress[assetAddress] = tcs;
 
             var table = string.IsNullOrEmpty(dataTableName)
                 ? dataTableComponent.CreateDataTable(dataRowType)
                 : dataTableComponent.CreateDataTable(dataRowType, dataTableName);
 
-            if (!string.IsNullOrEmpty(customPackageName))
-            {
-                var resourcesComponent = GameEntry.GetComponent<ResourceComponent>();
-                resourcesComponent.CurrentPackageName = customPackageName;
-            }
-
-            table.ReadData(assetName, customPriority ?? 0);
+            table.ReadData(assetAddress, customPriority ?? 0);
 
             return tcs.Task;
         }
 
         private static void OnEvent(object sender, LoadDataTableSuccessEventArgs e)
         {
-            if (DataTableLoadCompletedTcsByAssetName.Remove(e.DataTableAssetName, out var tcs))
+            if (DataTableLoadCompletedTcsByAssetAddress.Remove(e.DataTableAssetAddress, out var tcs))
             {
                 tcs.TrySetResult();
             }
@@ -59,7 +53,7 @@ namespace EasyGameFramework.Tasks
 
         private static void OnEvent(object sender, LoadDataTableFailureEventArgs e)
         {
-            if (DataTableLoadCompletedTcsByAssetName.Remove(e.DataTableAssetName, out var tcs))
+            if (DataTableLoadCompletedTcsByAssetAddress.Remove(e.DataTableAssetAddress, out var tcs))
             {
                 tcs.TrySetException(new Exception(e.ErrorMessage));
             }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using EasyGameFramework.Core.Event;
+using EasyGameFramework.Core.Resource;
 
 namespace EasyGameFramework.Tasks
 {
@@ -20,20 +21,19 @@ namespace EasyGameFramework.Tasks
         /// <summary>
         /// 异步打开界面。
         /// </summary>
-        /// <param name="uiFormAssetName">界面资源名称。</param>
+        /// <param name="uiFormAssetAddress">界面资源地址。</param>
         /// <param name="uiGroupName">界面组名称。</param>
         /// <param name="pauseCoveredUIForm">是否暂停被覆盖的界面。</param>
         /// <param name="userData">用户自定义数据。</param>
         /// <returns>界面。</returns>
         public static UniTask<UIForm> OpenUIFormAsync(this UIComponent uiComponent,
-            string uiFormAssetName,
+            AssetAddress uiFormAssetAddress,
             string uiGroupName,
-            string customPackageName = "",
             bool pauseCoveredUIForm = false,
             int? customPriority = null,
             object userData = null)
         {
-            var serialId = uiComponent.OpenUIForm(uiFormAssetName, uiGroupName, customPackageName, customPriority,
+            var serialId = uiComponent.OpenUIForm(uiFormAssetAddress, uiGroupName, customPriority,
                 pauseCoveredUIForm, userData);
             if (UIFormOpenCompletedTcsBySerialId.TryGetValue(serialId, out var tcs))
             {

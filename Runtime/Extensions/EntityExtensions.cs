@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using EasyGameFramework.Core.Event;
+using EasyGameFramework.Core.Resource;
 
 namespace EasyGameFramework.Tasks
 {
@@ -20,9 +21,8 @@ namespace EasyGameFramework.Tasks
         public static UniTask<Entity> ShowEntityAsync(this EntityComponent entityComponent,
             int entityId,
             Type entityLogicType,
-            string entityAssetName,
+            AssetAddress entityAssetAddress,
             string entityGroupName,
-            string customPackageName = "",
             int? customPriority = null,
             object userData = null)
         {
@@ -34,7 +34,7 @@ namespace EasyGameFramework.Tasks
             tcs = new UniTaskCompletionSource<Entity>();
             EntityShowCompletedTcsBySerialId.Add(entityId, tcs);
 
-            entityComponent.ShowEntity(entityId, entityLogicType, entityAssetName, entityGroupName, customPackageName,
+            entityComponent.ShowEntity(entityId, entityLogicType, entityAssetAddress, entityGroupName,
                 customPriority, userData);
 
             return tcs.Task;
