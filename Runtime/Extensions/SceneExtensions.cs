@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using EasyGameFramework.Core.Event;
 using EasyGameFramework.Core.Resource;
+using EasyGameFramework.Essentials;
 using UnityEngine.SceneManagement;
 
 namespace EasyGameFramework.Tasks
@@ -14,7 +15,7 @@ namespace EasyGameFramework.Tasks
 
         private static readonly Dictionary<AssetAddress, UniTaskCompletionSource> SceneUnloadCompletedTcsByAssetAddress =
             new Dictionary<AssetAddress, UniTaskCompletionSource>();
-        
+
         static SceneExtensions()
         {
             var eventComponent = GameEntry.GetComponent<EventComponent>();
@@ -57,6 +58,24 @@ namespace EasyGameFramework.Tasks
             SceneUnloadCompletedTcsByAssetAddress[sceneAssetAddress] = tcs;
             sceneComponent.UnloadScene(sceneAssetAddress);
             return tcs.Task;
+        }
+
+        /// <summary>
+        /// 异步加载游戏场景，支持完整的初始化功能。
+        /// </summary>
+        /// <param name="sceneComponent">SceneComponent 实例。</param>
+        /// <param name="sceneAssetAddress">要加载的场景的资源地址。</param>
+        /// <param name="userData">传递给场景初始化器的可选自定义数据。</param>
+        /// <param name="retryPolicy">加载失败的可选重试策略。</param>
+        /// <returns>在场景加载并初始化完成时完成的 UniTask。</returns>
+        public static UniTask LoadGameSceneAsync(
+            this SceneComponent sceneComponent,
+            AssetAddress sceneAssetAddress,
+            object userData = null,
+            IRetryPolicy retryPolicy = null)
+        {
+            return GameEntry.GetComponent<GameSceneComponent>()
+                .LoadGameSceneAsync(sceneAssetAddress, userData, retryPolicy);
         }
 
         private static void OnEvent(object sender, LoadSceneSuccessEventArgs e)
