@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using EasyGameFramework.Core.Event;
 using EasyGameFramework.Core.Resource;
 using EasyGameFramework;
+using EasyGameFramework.Essentials;
 
 namespace EasyGameFramework.Tasks
 {
@@ -38,7 +39,7 @@ namespace EasyGameFramework.Tasks
                 ? dataTableComponent.CreateDataTable(dataRowType)
                 : dataTableComponent.CreateDataTable(dataRowType, dataTableName);
 
-            table.ReadData(assetAddress, customPriority ?? 0);
+            table.ReadData(assetAddress, customPriority ?? Constant.AssetPriority.DataTableAsset);
 
             return tcs.Task;
         }

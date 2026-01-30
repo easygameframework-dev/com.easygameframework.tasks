@@ -41,7 +41,7 @@ namespace EasyGameFramework.Tasks
 
             sceneComponent.LoadScene(
                 sceneAssetAddress,
-                customPriority,
+                customPriority ?? Constant.AssetPriority.SceneAsset,
                 new LoadSceneParameters(sceneMode, physicsMode));
 
             return tcs.Task;

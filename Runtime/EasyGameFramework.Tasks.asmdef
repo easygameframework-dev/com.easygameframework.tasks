@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "EasyGameFramework",
+        "EasyToolkit.Core",
         "EasyGameFramework.Essentials",
         "UniTask"
     ],
