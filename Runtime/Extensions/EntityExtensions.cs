@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using EasyGameFramework.Core.Event;
 using EasyGameFramework.Core.Resource;
-using EasyGameFramework.Essentials;
 
 namespace EasyGameFramework.Tasks
 {
@@ -36,7 +35,7 @@ namespace EasyGameFramework.Tasks
             EntityShowCompletedTcsBySerialId.Add(entityId, tcs);
 
             entityComponent.ShowEntity(entityId, entityLogicType, entityAssetAddress, entityGroupName,
-                customPriority ?? Constant.AssetPriority.EntityAsset, userData);
+                customPriority, userData);
 
             return tcs.Task;
         }

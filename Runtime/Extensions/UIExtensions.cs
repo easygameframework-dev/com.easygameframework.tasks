@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using EasyGameFramework.Core.Event;
 using EasyGameFramework.Core.Resource;
-using EasyGameFramework.Essentials;
 
 namespace EasyGameFramework.Tasks
 {
@@ -34,7 +33,7 @@ namespace EasyGameFramework.Tasks
             int? customPriority = null,
             object userData = null)
         {
-            var serialId = uiComponent.OpenUIForm(uiFormAssetAddress, uiGroupName, customPriority ?? Constant.AssetPriority.UIFormAsset,
+            var serialId = uiComponent.OpenUIForm(uiFormAssetAddress, uiGroupName, customPriority,
                 pauseCoveredUIForm, userData);
             if (UIFormOpenCompletedTcsBySerialId.TryGetValue(serialId, out var tcs))
             {
